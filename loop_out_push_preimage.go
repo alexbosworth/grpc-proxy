@@ -1,20 +1,14 @@
 package main
 
 import (
-	"github.com/alexbosworth/grpc-proxy/looprpc"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"net/http"
 )
 
-// Arguments for get loop out terms request
-type loopOutTermsRequest struct {
-	ProtocolVersion string `json:"protocol_version" binding:"required"`
-}
-
-// Get the terms for loop out
-func loopOutTerms(c *gin.Context) {
+// Push the preimage for a Loop Out swap
+func loopOutPushPreimage(c *gin.Context) {
 	headers := requestHeaders{}
 
 	// Exit early when the headers cannot be bound
@@ -23,49 +17,41 @@ func loopOutTerms(c *gin.Context) {
 		return
 	}
 
-	// Map the request into its type
-	var req loopOutTermsRequest
+	var req preimagePush
+
+	// Exit early when the JSON arguments are incorrect types
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"details": err.Error()})
 		return
 	}
 
-	_, hasProtocol := looprpc.ProtocolVersion_value[req.ProtocolVersion]
+	loopReq, reqErr := req.asGrpcRequest()
 
-	// Exit early when the protocol is not defined
-	if !hasProtocol {
-		c.JSON(
-			http.StatusBadRequest,
-			gin.H{"details": "ExpectedKnownProtocolVersionToGetTerms"},
-		)
+	// Exit early when there is an error validating the request arguments
+	if reqErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"details": reqErr.Error()})
 		return
 	}
 
 	// Get a connection to the server
-	client, connectionError := swapClient()
+	client, connectErr := swapClient()
 
 	// Exit early when there is a connection issue
-	if connectionError != nil {
+	if connectErr != nil {
 		c.JSON(
 			http.StatusServiceUnavailable,
-			gin.H{"details": "FailedToConnectToSwapServer"},
+			gin.H{"details": "FailedToConnectToSwapServerToPushPreimage"},
 		)
 		return
-	}
-
-	// Map the arguments into a request
-	loopReq := looprpc.ServerLoopOutTermsRequest{
-		ProtocolVersion: looprpc.ProtocolVersion(
-			looprpc.ProtocolVersion_value[req.ProtocolVersion],
-		),
 	}
 
 	// gRPC responses have "trailers" for metadata in addition to headers
 	responseTrailers := metadata.MD{}
 
-	grpcResponse, loopErr := client.LoopOutTerms(
+	// Initiate the gRPC request to the server
+	grpcResponse, loopErr := client.LoopOutPushPreimage(
 		headers.asGrpcContext(),
-		&loopReq,
+		loopReq,
 		grpc.Trailer(&responseTrailers),
 	)
 
