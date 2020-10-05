@@ -2,11 +2,26 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"os"
+)
+
+var (
+	defaultServerPort     = "8080"
+	listenPortEnvVar      = "PORT"
+	tlsCertFilePathEnvVar = "TLS_CERT_FILE_PATH"
+	tlsKeyFilePathEnvVar  = "TLS_KEY_FILE_PATH"
 )
 
 // Start the gRPC proxy service
 func main() {
 	app := gin.Default()
+	listenPort := ":" + os.Getenv(listenPortEnvVar)
+	tlsCertFilePath := os.Getenv(tlsCertFilePathEnvVar)
+	tlsKeyFilePath := os.Getenv(tlsKeyFilePathEnvVar)
+
+	if listenPort == ":" {
+		listenPort = ":" + defaultServerPort
+	}
 
 	// Handle requests to get a Loop In quote
 	app.POST("/v0/loopInQuote", func(context *gin.Context) {
@@ -38,5 +53,9 @@ func main() {
 		newLoopOutSwap(context)
 	})
 
-	app.Run()
+	if tlsCertFilePath != "" && tlsKeyFilePath != "" {
+		app.RunTLS(listenPort, tlsCertFilePath, tlsKeyFilePath)
+	} else {
+		app.Run(listenPort)
+	}
 }
