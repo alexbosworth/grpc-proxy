@@ -9,7 +9,7 @@ import (
 // Arguments for a Loop Out request
 type loopOutSwap struct {
 	Amt             uint64 `json:"amt,string,omitempty" binding:"required"`
-	Deadline        int64  `json:"swap_publication_deadline"`
+	Deadline        int64  `json:"swap_publication_deadline,string"`
 	Expiry          int32  `json:"expiry" binding:"required"`
 	ProtocolVersion string `json:"protocol_version" binding:"required"`
 	ReceiverKey     string `json:"receiver_key" binding:"required"`

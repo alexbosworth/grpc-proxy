@@ -9,7 +9,7 @@ import (
 type outQuote struct {
 	Amt             uint64 `json:"amt,string,omitempty" binding:"required"`
 	Expiry          int32  `json:"expiry" binding:"required"`
-	Deadline        int64  `json:"swap_publication_deadline"`
+	Deadline        int64  `json:"swap_publication_deadline,string"`
 	ProtocolVersion string `json:"protocol_version" binding:"required"`
 }
 
