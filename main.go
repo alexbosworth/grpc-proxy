@@ -28,6 +28,11 @@ func main() {
 		loopInQuote(context)
 	})
 
+	// Handle requests to get Loop In terms
+	app.POST("/v0/loopInTerms", func(context *gin.Context) {
+		loopInTerms(context)
+	})
+
 	// Handle requests to get Loop Out terms
 	app.POST("/v0/loopOutPushPreimage", func(context *gin.Context) {
 		loopOutPushPreimage(context)
