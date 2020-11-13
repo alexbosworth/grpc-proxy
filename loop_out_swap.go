@@ -14,6 +14,7 @@ type loopOutSwap struct {
 	ProtocolVersion string `json:"protocol_version" binding:"required"`
 	ReceiverKey     string `json:"receiver_key" binding:"required"`
 	SwapHash        string `json:"swap_hash" binding:"required"`
+	UserAgent       string `json:"user_agent" binding:"required"`
 }
 
 // Derive gRPC request details for a loopOutSwap
@@ -48,6 +49,7 @@ func (swap loopOutSwap) asGrpcRequest() (*looprpc.ServerLoopOutRequest, error) {
 		ReceiverKey:             receiverKey,
 		SwapHash:                swapHash,
 		SwapPublicationDeadline: swap.Deadline,
+		UserAgent:               swap.UserAgent,
 	}
 
 	return &request, nil
